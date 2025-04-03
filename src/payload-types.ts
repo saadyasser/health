@@ -119,7 +119,16 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
-  username?: string | null;
+  username: string;
+  fullName?: string | null;
+  healthConcern?: string | null;
+  messages?:
+    | {
+        message?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  phone?: string | null;
   date?: string | null;
   time?: string | null;
   age?: string | null;
@@ -222,6 +231,15 @@ export interface PayloadMigration {
  */
 export interface UsersSelect<T extends boolean = true> {
   username?: T;
+  fullName?: T;
+  healthConcern?: T;
+  messages?:
+    | T
+    | {
+        message?: T;
+        id?: T;
+      };
+  phone?: T;
   date?: T;
   time?: T;
   age?: T;

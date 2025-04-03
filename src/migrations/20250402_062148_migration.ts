@@ -8,7 +8,7 @@ export async function up({ payload }: MigrateUpArgs): Promise<void> {
     collection: 'users',
     data: {
       email: "saad@gmail.com",
-      username: "saad",
+      username: "saadwadi",
       password: '123456',
       date: '2025-04-02',
       time: '10:00 AM',

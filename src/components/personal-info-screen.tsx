@@ -1,91 +1,102 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import type { UserData } from "@/app/page"
-import { AlertCircle } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { UserData } from "@/app/(app)/page";
+import { AlertCircle } from "lucide-react";
+import { UserResponse } from "@/types/user-response-type";
 
 interface PersonalInfoScreenProps {
-  userData: UserData
-  updateUserData: (data: Partial<UserData>) => void
-  onNext: () => void
-  onPrev: () => void
+  userData: UserData;
+  updateUserData: (data: Partial<UserData>) => void;
+  onNext: () => void;
+  onPrev: () => void;
 }
 
-export default function PersonalInfoScreen({ userData, updateUserData, onNext, onPrev }: PersonalInfoScreenProps) {
-  const [fullName, setFullName] = useState(userData.personalInfo?.fullName || "")
-  const [email, setEmail] = useState(userData.personalInfo?.email || "")
-  const [phone, setPhone] = useState(userData.personalInfo?.phone || "")
-  const [consent, setConsent] = useState(userData.personalInfo?.consent || false)
+export default function PersonalInfoScreen({
+  userData,
+  updateUserData,
+  onNext,
+  onPrev,
+}: PersonalInfoScreenProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [fullName, setFullName] = useState(
+    userData.personalInfo?.fullName || ""
+  );
+  const [email, setEmail] = useState(userData.personalInfo?.email || "");
+  const [phone, setPhone] = useState(userData.personalInfo?.phone || "");
+  const [consent, setConsent] = useState(
+    userData.personalInfo?.consent || false
+  );
 
   const [errors, setErrors] = useState({
     fullName: "",
     email: "",
     phone: "",
     consent: "",
-  })
+  });
 
   const validateEmail = (email: string) => {
-    if (!email) return true // Empty is valid since it's optional
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+    if (!email) return true; // Empty is valid since it's optional
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const validatePhone = (phone: string) => {
-    if (!phone) return true // Empty is valid since it's optional
-    const phoneRegex = /^\+?[0-9]{10,15}$/
-    return phoneRegex.test(phone)
-  }
+    if (!phone) return true; // Empty is valid since it's optional
+    const phoneRegex = /^\+?[0-9]{10,15}$/;
+    return phoneRegex.test(phone);
+  };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     // Reset errors
     setErrors({
       fullName: "",
       email: "",
       phone: "",
       consent: "",
-    })
+    });
 
     // Validate if any field is filled
-    const hasInfo = fullName || email || phone
+    const hasInfo = fullName || email || phone;
 
     // If information is provided, validate it
     if (hasInfo) {
-      let isValid = true
+      let isValid = true;
       const newErrors = {
         fullName: "",
         email: "",
         phone: "",
         consent: "",
-      }
+      };
 
       // Validate email if provided
       if (email && !validateEmail(email)) {
-        newErrors.email = "Please enter a valid email address"
-        isValid = false
+        newErrors.email = "Please enter a valid email address";
+        isValid = false;
       }
 
       // Validate phone if provided
       if (phone && !validatePhone(phone)) {
-        newErrors.phone = "Please enter a valid phone number"
-        isValid = false
+        newErrors.phone = "Please enter a valid phone number";
+        isValid = false;
       }
 
       // Check consent if any information is provided
       if (hasInfo && !consent) {
-        newErrors.consent = "You must consent to share your information"
-        isValid = false
+        newErrors.consent = "You must consent to share your information";
+        isValid = false;
       }
 
       if (!isValid) {
-        setErrors(newErrors)
-        return
+        setErrors(newErrors);
+        return;
       }
     }
-
+    console.log({ fullName, email, phone, consent }, "personal information");
     // Save data and proceed
     updateUserData({
       personalInfo: {
@@ -94,25 +105,57 @@ export default function PersonalInfoScreen({ userData, updateUserData, onNext, o
         phone,
         consent,
       },
-    })
-    onNext()
-  }
+    });
+
+    try {
+      setIsLoading(true);
+      // Make a POST request to the API
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          username: fullName.replaceAll(" ", "").toLocaleLowerCase(),
+          email,
+          phone,
+          password: "123456",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save personal information");
+      }
+      const data: UserResponse = await response.json();
+      localStorage.setItem("userId", data.doc.id);
+      // Proceed to the next step
+      onNext();
+    } catch (error) {
+      console.error("Error saving personal information:", error);
+    } finally {
+      setIsLoading(false);
+    }
+    onNext();
+  };
 
   const handleSkip = () => {
     // Clear any previously entered personal info
     updateUserData({
       personalInfo: null,
-    })
-    onNext()
-  }
+    });
+    onNext();
+  };
 
   return (
     <div className="flex flex-col space-y-8">
       <div className="text-center">
-        <h2 className="text-4xl font-bold text-blue-700 mb-4">Personal Information</h2>
+        <h2 className="text-4xl font-bold text-blue-700 mb-4">
+          Personal Information
+        </h2>
         <p className="text-xl text-gray-600">
-          Would you like to share your contact information? This is optional and will help us provide you with your
-          health check results.
+          Would you like to share your contact information? This is optional and
+          will help us provide you with your health check results.
         </p>
       </div>
 
@@ -181,7 +224,8 @@ export default function PersonalInfoScreen({ userData, updateUserData, onNext, o
             className="w-6 h-6 mt-1"
           />
           <Label htmlFor="consent" className="text-lg font-normal">
-            I consent to share my personal information and receive my health check results
+            I consent to share my personal information and receive my health
+            check results
           </Label>
         </div>
         {errors.consent && (
@@ -192,19 +236,28 @@ export default function PersonalInfoScreen({ userData, updateUserData, onNext, o
       </div>
 
       <div className="flex justify-between pt-6">
-        <Button onClick={onPrev} className="text-xl py-6 px-10 bg-gray-200 text-gray-800 hover:bg-gray-300">
+        <Button
+          onClick={onPrev}
+          className="text-xl py-6 px-10 bg-gray-200 text-gray-800 hover:bg-gray-300"
+        >
           Back
         </Button>
         <div className="space-x-4">
-          <Button onClick={handleSkip} variant="outline" className="text-xl py-6 px-10">
+          <Button
+            onClick={handleSkip}
+            variant="outline"
+            className="text-xl py-6 px-10"
+          >
             Skip
           </Button>
-          <Button onClick={handleNext} className="text-xl py-6 px-10 bg-blue-600 hover:bg-blue-700">
-            Next
+          <Button
+            onClick={handleNext}
+            className="text-xl py-6 px-10 bg-blue-600 hover:bg-blue-700"
+          >
+            {isLoading ? "Processing..." : "Next"}
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }
-

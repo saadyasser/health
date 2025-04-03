@@ -1,34 +1,66 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import type { UserData } from "@/app/page"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import type { UserData } from "@/app/(app)/page";
 
 interface UserInfoScreenProps {
-  userData: UserData
-  updateUserData: (data: Partial<UserData>) => void
-  onNext: () => void
-  onPrev: () => void
+  userData: UserData;
+  updateUserData: (data: Partial<UserData>) => void;
+  onNext: () => void;
+  onPrev: () => void;
 }
 
-export default function UserInfoScreen({ userData, updateUserData, onNext, onPrev }: UserInfoScreenProps) {
-  const [age, setAge] = useState(userData.age ? Number.parseInt(userData.age) : 30)
-  const [selectedGender, setSelectedGender] = useState(userData.gender || "")
+export default function UserInfoScreen({
+  userData,
+  updateUserData,
+  onNext,
+  onPrev,
+}: UserInfoScreenProps) {
+  const [isLoading, setIsLoading] = useState(false);
 
-  const genders = ["Male", "Female"]
+  const [age, setAge] = useState(
+    userData.age ? Number.parseInt(userData.age) : 30
+  );
+  const [selectedGender, setSelectedGender] = useState(userData.gender || "");
 
-  const handleNext = () => {
-    updateUserData({ age: age.toString(), gender: selectedGender })
-    onNext()
-  }
+  const genders = ["Male", "Female"];
+
+  const handleNext = async () => {
+    const userId = localStorage.getItem("userId");
+    try {
+      setIsLoading(true);
+      const req = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          age: age.toString(),
+          gender: selectedGender,
+        }),
+      });
+      console.log(req);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
+    updateUserData({ age: age.toString(), gender: selectedGender });
+    onNext();
+  };
 
   return (
     <div className="flex flex-col space-y-10">
       <div className="text-center">
-        <h2 className="text-4xl font-bold text-blue-700 mb-4">Tell Us About Yourself</h2>
+        <h2 className="text-4xl font-bold text-blue-700 mb-4">
+          Tell Us About Yourself
+        </h2>
         <p className="text-xl text-gray-600">
-          Please select your age and gender to help us personalize your health check.
+          Please select your age and gender to help us personalize your health
+          check.
         </p>
       </div>
 
@@ -70,7 +102,9 @@ export default function UserInfoScreen({ userData, updateUserData, onNext, onPre
               <Card
                 key={gender}
                 className={`p-8 cursor-pointer transition-all ${
-                  selectedGender === gender ? "bg-blue-100 border-blue-500 border-2" : "hover:bg-gray-50"
+                  selectedGender === gender
+                    ? "bg-blue-100 border-blue-500 border-2"
+                    : "hover:bg-gray-50"
                 }`}
                 onClick={() => setSelectedGender(gender)}
               >
@@ -82,7 +116,10 @@ export default function UserInfoScreen({ userData, updateUserData, onNext, onPre
       </div>
 
       <div className="flex justify-between pt-6">
-        <Button onClick={onPrev} className="text-xl py-6 px-10 bg-gray-200 text-gray-800 hover:bg-gray-300">
+        <Button
+          onClick={onPrev}
+          className="text-xl py-6 px-10 bg-gray-200 text-gray-800 hover:bg-gray-300"
+        >
           Back
         </Button>
         <Button
@@ -90,10 +127,9 @@ export default function UserInfoScreen({ userData, updateUserData, onNext, onPre
           disabled={!selectedGender}
           className="text-xl py-6 px-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
         >
-          Continue
+          {isLoading ? "Processing..." : "Continue"}
         </Button>
       </div>
     </div>
-  )
+  );
 }
-

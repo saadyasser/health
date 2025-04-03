@@ -36,8 +36,27 @@ export default function ComplaintScreen({
     "Chest Pain",
     "Other",
   ];
-
-  const handleNext = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const handleNext = async () => {
+    const userId = localStorage.getItem("userId");
+    try {
+      setIsLoading(true);
+      const req = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          healthConcern: selectedComplaint,
+        }),
+      });
+      console.log(req);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
     updateUserData({ complaint: selectedComplaint });
     onNext();
   };
@@ -83,7 +102,7 @@ export default function ComplaintScreen({
           disabled={!selectedComplaint}
           className="text-xl py-6 px-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
         >
-          Continue
+          {isLoading ? "Processing" : "Continue"}
         </Button>
       </div>
     </div>

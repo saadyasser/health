@@ -6,17 +6,42 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
   },
   auth: true,
+  access: {
+    create: () => true,
+    read: () => true,
+    update: () => true,
+  },
   fields: [
     {
       name: 'username',
       type: 'text',
-      index: true,
+      required: true,
     },
     {
       name: 'email',
       type: 'email',
       required: true,
       unique: true,
+    },
+    {
+      name: 'fullName',
+      type: 'text',
+      required: false,
+    },
+    {
+      name: 'healthConcern',
+      type: 'text',
+      required: false,
+
+    }, {
+      name: 'messages',
+      type: 'array',
+      fields: [{ name: "message", type: "text" }],
+      required: false,
+    }, {
+      name: 'phone',
+      type: 'text',
+      required: false,
     },
     {
       name: 'date',

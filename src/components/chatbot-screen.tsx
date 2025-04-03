@@ -30,6 +30,8 @@ export default function ChatbotScreen({
   userData,
   onReset,
 }: ChatbotScreenProps) {
+  const [isStoreMessages, setIsStoreMessages] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -130,7 +132,26 @@ export default function ChatbotScreen({
     }
   };
 
-  const handleShowSummary = () => {
+  const handleShowSummary = async () => {
+    const userId = localStorage.getItem("userId");
+    try {
+      setIsStoreMessages(true);
+      const req = await fetch(`/api/users/${userId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: messages.map((message) => ({ message: message.text })),
+        }),
+      });
+      console.log(req);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsStoreMessages(false);
+    }
     setShowSummary(true);
   };
 
@@ -237,7 +258,7 @@ export default function ChatbotScreen({
           onClick={handleShowSummary}
           className="text-xl py-6 px-10 bg-green-600 hover:bg-green-700"
         >
-          Complete & Print Summary
+          {isStoreMessages ? "Processing" : "Complete & Print Summary"}
         </Button>
       </div>
 
