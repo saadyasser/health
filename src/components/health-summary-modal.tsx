@@ -26,7 +26,7 @@ export default function HealthSummaryModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto print:shadow-none print:border-none bg-white">
-        <DialogHeader hidden={true}>
+        <DialogHeader>
           <DialogTitle className="text-3xl font-bold text-blue-700">
             Health Assessment Summary
           </DialogTitle>
@@ -45,7 +45,10 @@ export default function HealthSummaryModal({
 
           <div className="text-center">
             <div className="flex flex-col items-center bg-blue-100 p-2 rounded-lg">
-              <QRCode size={120} value={"localhost:3000/health-summary"} />
+              <QRCode
+                size={120}
+                value={"5nc3nb4j-3000.euw.devtunnels.ms/health-summary"}
+              />
               <p className="text-xs text-gray-600 mt-1">
                 Scan to view on mobile
               </p>
